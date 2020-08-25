@@ -21,8 +21,7 @@ public class MovieResources {
 
     @RequestMapping("/{movieId}")
     public Movie getMovieInfo(@PathVariable("movieId") String movieId){
-        //URL is not proper since I have just created the account and not have any movie list for my account.
-        MovieSummary movieSummary = restTemplate.getForObject("https://www.themoviedb.org/u/Ramya_PC/activity", MovieSummary.class);
-        return new Movie(movieId, movieSummary.getTitle(), movieSummary.getOverview());
+        MovieSummary movieSummary = restTemplate.getForObject("https://api.themoviedb.org/3/movie/550?api_key="+apiKey, MovieSummary.class);
+        return new Movie(movieSummary.getTitle(), movieSummary.getOverview());
     }
 }
