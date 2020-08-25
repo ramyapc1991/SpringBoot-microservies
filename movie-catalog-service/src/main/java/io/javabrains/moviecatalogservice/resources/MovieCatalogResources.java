@@ -5,6 +5,7 @@ import io.javabrains.moviecatalogservice.models.Movie;
 import io.javabrains.moviecatalogservice.models.Rating;
 import io.javabrains.moviecatalogservice.models.UserRating;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,8 +26,12 @@ public class MovieCatalogResources {
     @Autowired
     private RestTemplate restTemplate;
 
+    // not recommended to use this just leave to rest template to pick up the instance.
     @Autowired
     private WebClient.Builder webClientBuilder;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
@@ -43,11 +48,11 @@ public class MovieCatalogResources {
 //                new Rating("OMG", 3)
 //        );
 
-        UserRating ratings = restTemplate.getForObject("http://localhost:8083/ratingsData/user/"+userId,
+        UserRating ratings = restTemplate.getForObject("http://rating-data-service/ratingsData/user/"+userId,
                 UserRating.class);
         return ratings.getUserRatingList().stream().map(rating -> {
             //for all movie ID, call movie info service get details
-            Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
+            Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class);
 
 //            Movie movie = webClientBuilder.build()
 //                    .get()
