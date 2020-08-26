@@ -1,9 +1,13 @@
 package io.javabrains.moviecatalogservice.resources;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.ribbon.proxy.annotation.Hystrix;
 import io.javabrains.moviecatalogservice.models.CatalogItem;
 import io.javabrains.moviecatalogservice.models.Movie;
 import io.javabrains.moviecatalogservice.models.Rating;
 import io.javabrains.moviecatalogservice.models.UserRating;
+import io.javabrains.moviecatalogservice.services.MovieInfo;
+import io.javabrains.moviecatalogservice.services.UserRatingInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +37,12 @@ public class MovieCatalogResources {
     @Autowired
     private DiscoveryClient discoveryClient;
 
+    @Autowired
+    private MovieInfo movieInfo;
+
+    @Autowired
+    private UserRatingInfo userRatingInfo;
+
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
 
@@ -48,11 +58,14 @@ public class MovieCatalogResources {
 //                new Rating("OMG", 3)
 //        );
 
-        UserRating ratings = restTemplate.getForObject("http://rating-data-service/ratingsData/user/"+userId,
-                UserRating.class);
+        UserRating ratings = userRatingInfo.getUserRating(userId);
         return ratings.getUserRatingList().stream().map(rating -> {
             //for all movie ID, call movie info service get details
-            Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class);
+            Movie movie = movieInfo.getCatalogItem(rating);
+
+            //put them all together
+            return new CatalogItem(movie.getName(), "Movie desc", rating.getRating());
+        }).collect(Collectors.toList());
 
 //            Movie movie = webClientBuilder.build()
 //                    .get()
@@ -61,13 +74,14 @@ public class MovieCatalogResources {
 //                    .bodyToMono(Movie.class)
 //                    .block();
 
-            //put them all together
-            return new CatalogItem(movie.getName(), "Movie desc", rating.getRating());
-        }).collect(Collectors.toList());
-
 //        return Collections.singletonList(
 //                new CatalogItem("ABCD", "Ant body can dance", 4)
 //        );
+    }
+
+
+    public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userId){
+        return Arrays.asList(new CatalogItem("no movie", "", 0));
     }
 
 }
