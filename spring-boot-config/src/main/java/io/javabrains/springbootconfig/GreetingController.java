@@ -1,5 +1,6 @@
 package io.javabrains.springbootconfig;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,8 +23,12 @@ public class GreetingController {
     @Value("#{${dbValues}}")
     private Map<String, String> keyValuePair;
 
+    @Autowired
+    private DBSettings dbSettings;
+
     @RequestMapping("greeting")
     public String greeting(){
-        return greetingMsg + staticMsg + listValues + keyValuePair;
+        //return greetingMsg + staticMsg + listValues + keyValuePair;
+        return dbSettings.getConnection() + dbSettings.getHost();
     }
 }
