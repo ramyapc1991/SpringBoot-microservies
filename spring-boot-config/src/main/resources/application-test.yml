@@ -1,0 +1,13 @@
+my:
+  greeting: Hello Ramya
+  list:
+    value: one,two,three
+
+dbValues: "{connection: 'http://---', userName: 'footest', pass:'pass'}"
+
+db:
+  connection: "{connection: 'http://---', userName: 'footest', pass:'passtest'}"
+  host: 127.0.02
+  port: 2400
+
+management.endpoints.web.exposure.include: "*"
